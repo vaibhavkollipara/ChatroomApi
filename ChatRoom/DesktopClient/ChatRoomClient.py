@@ -81,47 +81,59 @@ class ChatRoomApiClient:
         else:
             url = 'http://127.0.0.1:8000/auth/obtaintoken/'
             data = {'username': self.username, 'password': self.password}
-            response = requests.post(url=url, data=data)
-            if response.status_code == 200:
-                self.token = response.json()['token']
-                print("Logged in as {}".format(self.username))
-            else:
-                print("Invalid login credentials")
-                self.username = None
-                self.password = None
-            print(response.json())
+            try:
+                response = requests.post(url=url, data=data)
+                if response.status_code == 200:
+                    self.token = response.json()['token']
+                    print("Logged in as {}".format(self.username))
+                else:
+                    print("Invalid login credentials")
+                    self.username = None
+                    self.password = None
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def view_my_details(self):
         if self.verify_token():
             url = 'http://127.0.0.1:8000/accounts/mydetails/'
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.get(url=url, headers=headers)
-            if response.status_code != 200:
-                print("Problem viewing details")
-            print(response.json())
+            try:
+                response = requests.get(url=url, headers=headers)
+                if response.status_code != 200:
+                    print("Problem viewing details")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def get_my_chatrooms(self):
         if self.verify_token():
             url = 'http://127.0.0.1:8000/mychatrooms/'
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.get(url=url, headers=headers)
-            if response.status_code == 200:
-                print("ChatroomsList Retrieved")
-            else:
-                print("Something wrong...")
-            print(response.json())
+            try:
+                response = requests.get(url=url, headers=headers)
+                if response.status_code == 200:
+                    print("ChatroomsList Retrieved")
+                else:
+                    print("Something wrong...")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def get_chatroom_members(self):
         if self.verify_token():
             chatroom_slug = str(input("Enter chatroom slug : "))
             url = 'http://127.0.0.1:8000/chatroom/{}/memberslist/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.get(url=url, headers=headers)
-            if response.status_code == 200:
-                print("Members List Retrieved")
-            else:
-                print("Problem Retrieving Members List")
-            print(response.json())
+            try:
+                response = requests.get(url=url, headers=headers)
+                if response.status_code == 200:
+                    print("Members List Retrieved")
+                else:
+                    print("Problem Retrieving Members List")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def new_chatroom(self):
         if self.verify_token():
@@ -129,36 +141,45 @@ class ChatRoomApiClient:
             url = 'http://127.0.0.1:8000/newchatroom/'
             headers = {'Authorization': 'JWT {}'.format(self.token)}
             data = {'name' : chatroom_name}
-            response = requests.post(url=url,headers=headers,data=data)
-            if response.status_code == 201:
-                print("Chatroom Created")
-            else:
-                print("Problem Creating Chatroom")
-            print(response.json())
+            try:
+                response = requests.post(url=url,headers=headers,data=data)
+                if response.status_code == 201:
+                    print("Chatroom Created")
+                else:
+                    print("Problem Creating Chatroom")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def delete_chatroom(self):
         if self.verify_token():
             chatroom_slug = str(input("Enter ChatRoom slug : "))
             url = 'http://127.0.0.1:8000/deletechatroom/{}/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.delete(url=url,headers=headers)
-            if response.status_code == 204:
-                print("Chatroom Deleted")
-            else:
-                print("Problem Deleting Chatroom")
-                print(response.json())
+            try:
+                response = requests.delete(url=url,headers=headers)
+                if response.status_code == 204:
+                    print("Chatroom Deleted")
+                else:
+                    print("Problem Deleting Chatroom")
+                    print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def exit_chatroom(self):
         if self.verify_token():
             chatroom_slug = str(input("Enter ChatRoom slug : "))
             url = 'http://127.0.0.1:8000/chatroom/{}/exit/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.delete(url=url,headers=headers)
-            if response.status_code == 204:
-                print("Exited from Deleted")
-            else:
-                print("Problem Exiting Chatroom")
-                print(response.json())
+            try:
+                response = requests.delete(url=url,headers=headers)
+                if response.status_code == 204:
+                    print("Exited from Deleted")
+                else:
+                    print("Problem Exiting Chatroom")
+                    print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def rename_chatroom(self):
         if self.verify_token():
@@ -167,24 +188,30 @@ class ChatRoomApiClient:
             url = 'http://127.0.0.1:8000/renamechatroom/{}/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
             data = {'name' : chatroom_name}
-            response = requests.patch(url=url, headers=headers,data=data)
-            if response.status_code == 200:
-                print("ChatRoom Renamed")
-            else:
-                print("Problem Renaming Chatroom")
-            print(response.json())
+            try:
+                response = requests.patch(url=url, headers=headers,data=data)
+                if response.status_code == 200:
+                    print("ChatRoom Renamed")
+                else:
+                    print("Problem Renaming Chatroom")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def get_room_messages(self):
         if self.verify_token():
             chatroom_slug = str(input("Enter chatroom-slug : "))
             url = 'http://127.0.0.1:8000/chatroom/{}/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.get(url=url, headers=headers)
-            if response.status_code == 200:
-                print("Messaged Retrieved")
-            else:
-                print("Problem Viewing Messages")
-            print(response.json())
+            try:
+                response = requests.get(url=url, headers=headers)
+                if response.status_code == 200:
+                    print("Messaged Retrieved")
+                else:
+                    print("Problem Viewing Messages")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def send_message(self):
         if self.verify_token():
@@ -193,12 +220,15 @@ class ChatRoomApiClient:
             url = 'http://127.0.0.1:8000/chatroom/{}/newmessage/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
             data = {'message': message}
-            response = requests.post(url=url, headers=headers, data=data)
-            if response.status_code == 201:
-                print("Message sent")
-            else:
-                print("Failed to send message")
-            print(response.json())
+            try:
+                response = requests.post(url=url, headers=headers, data=data)
+                if response.status_code == 201:
+                    print("Message sent")
+                else:
+                    print("Failed to send message")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def add_member(self):
         if self.verify_token():
@@ -207,12 +237,15 @@ class ChatRoomApiClient:
             url = 'http://127.0.0.1:8000/chatroom/{}/newmember/'.format(chatroom_slug)
             data = {'username': username}
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            response = requests.post(url=url, headers=headers, data=data)
-            if response.status_code == 201:
-                print("New Member Added")
-            else:
-                print("Problem adding new member")
-            print(response.json())
+            try:
+                response = requests.post(url=url, headers=headers, data=data)
+                if response.status_code == 201:
+                    print("New Member Added")
+                else:
+                    print("Problem adding new member")
+                print(response.json())
+            except:
+                print("Problem connecting to server")
 
     def register(self):
         first_name = str(input("Enter First Name : "))
@@ -223,25 +256,31 @@ class ChatRoomApiClient:
         url = 'http://127.0.0.1:8000/accounts/signup/'
         data = {'first_name': first_name, 'last_name': last_name, 'email': email, 'username': username,
                 'password': password}
-        response = requests.post(url=url, data=data)
-        if response.status_code == 201:
-            print("Account Created")
-        else:
-            print("Problem SigningUp")
-        print(response.json())
+        try:
+            response = requests.post(url=url, data=data)
+            if response.status_code == 201:
+                print("Account Created")
+            else:
+                print("Problem SigningUp")
+            print(response.json())
+        except:
+            print("Problem connecting to server")
 
     def verify_token(self):
         if self.token is not None:
             url = 'http://127.0.0.1:8000/auth/verifytoken/'
             data = {'token': self.token}
-            response = requests.post(url=url, data=data)
-            if response.status_code == 200:
-                return True
-            else:
-                print("Token Expired.. Trying to fetch new token")
-                self.token = None
-                self.login()
-                self.verify_token()
+            try:
+                response = requests.post(url=url, data=data)
+                if response.status_code == 200:
+                    return True
+                else:
+                    print("Token Expired.. Trying to fetch new token")
+                    self.token = None
+                    self.login()
+                    self.verify_token()
+            except:
+                print("Problem connecting to server")
         else:
             print("Need to login")
             return False
@@ -252,5 +291,9 @@ class ChatRoomApiClient:
         self.token = None
 
 
-client = ChatRoomApiClient()
-client.start()
+def main():
+    client = ChatRoomApiClient()
+    client.start()
+
+if __name__ == '__main__':
+    main()
