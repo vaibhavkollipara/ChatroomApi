@@ -140,9 +140,9 @@ class ChatRoomApiClient:
             chatroom_name = str(input("Enter ChatRoom Name : "))
             url = 'http://127.0.0.1:8000/newchatroom/'
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            data = {'name' : chatroom_name}
+            data = {'name': chatroom_name}
             try:
-                response = requests.post(url=url,headers=headers,data=data)
+                response = requests.post(url=url, headers=headers, data=data)
                 if response.status_code == 201:
                     print("Chatroom Created")
                 else:
@@ -157,7 +157,7 @@ class ChatRoomApiClient:
             url = 'http://127.0.0.1:8000/deletechatroom/{}/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
             try:
-                response = requests.delete(url=url,headers=headers)
+                response = requests.delete(url=url, headers=headers)
                 if response.status_code == 204:
                     print("Chatroom Deleted")
                 else:
@@ -172,7 +172,7 @@ class ChatRoomApiClient:
             url = 'http://127.0.0.1:8000/chatroom/{}/exit/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
             try:
-                response = requests.delete(url=url,headers=headers)
+                response = requests.delete(url=url, headers=headers)
                 if response.status_code == 204:
                     print("Exited from Deleted")
                 else:
@@ -187,9 +187,9 @@ class ChatRoomApiClient:
             chatroom_name = str(input("Enter ChatRoom new name : "))
             url = 'http://127.0.0.1:8000/renamechatroom/{}/'.format(chatroom_slug)
             headers = {'Authorization': 'JWT {}'.format(self.token)}
-            data = {'name' : chatroom_name}
+            data = {'name': chatroom_name}
             try:
-                response = requests.patch(url=url, headers=headers,data=data)
+                response = requests.patch(url=url, headers=headers, data=data)
                 if response.status_code == 200:
                     print("ChatRoom Renamed")
                 else:
@@ -294,6 +294,7 @@ class ChatRoomApiClient:
 def main():
     client = ChatRoomApiClient()
     client.start()
+
 
 if __name__ == '__main__':
     main()

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +26,7 @@ SECRET_KEY = 'y17xzed*a1v3csrwcz9eaqfmn%s!lsn$s!$6^^jj)@8e+*rw(2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_jwt',
+    'rest_framework_docs',
     'chat',
     'accounts',
 ]
@@ -145,6 +147,6 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_ALLOW_ALL = True
 
 
-CORS_ORIGIN_WHITELIST = (
-    '127.0.0.1:4200'
-)
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+}

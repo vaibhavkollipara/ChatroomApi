@@ -2,4 +2,4 @@ from rest_framework.pagination import PageNumberPagination
 
 
 class MyPageNumberPagination(PageNumberPagination):
-    page_size = 60
+    page_size = 20
