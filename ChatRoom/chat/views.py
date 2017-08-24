@@ -30,7 +30,7 @@ from .models import (
 )
 
 from django.core.cache import cache
-from .Cache import Cache
+from .Cache import Cache, ChatroomCache
 
 
 def index(request):
@@ -62,16 +62,17 @@ class ChatRoomListApiView(ListAPIView):
         chatrooms = None
         if not myCache:
             myCache = Cache()
-            print("Cache Created")
         if self.request.user.id in myCache.users.keys():
-            chatrooms = myCache.users[self.request.user.id]
-            print("Cache hit")
+            if myCache.users[self.request.user.id]:
+                print("Chatrooms : Cache Hit")
+            if not myCache.users[self.request.user.id]:
+                myCache.users[self.request.user.id] = self.request.user.chatroom_set.all()
+                cache.set("chatroom", myCache)
         else:
             print("Cache miss")
-            chatrooms = self.request.user.chatroom_set.all()
-            myCache.users[self.request.user.id] = chatrooms
+            myCache.users[self.request.user.id] = self.request.user.chatroom_set.all()
             cache.set("chatroom", myCache)
-        return chatrooms
+        return myCache.users[self.request.user.id]
 
 
 class ChatRoomDeleteApiView(DestroyAPIView):
@@ -121,13 +122,11 @@ class MessageCreateApiView(CreateAPIView):
 
     def perform_create(self, serializer):
         chatroom_slug = self.kwargs.get(self.lookup_url_kwarg)
+        self.check_object_permissions(self.request, chatroom_slug)
         try:
             chat_room = ChatRoom.objects.get(slug=chatroom_slug)
         except:
             raise APIException("Invalid Chatroom")
-        user = self.request.user
-        if user not in chat_room.members.all():
-            raise APIException("You must be member of this chatroom for access")
         serializer.save(chat_room=chat_room, sender=user)
 
 
@@ -138,23 +137,28 @@ class ChatRoomMembersListApiView(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         chat_room_slug = self.kwargs.get(self.lookup_url_kwarg)
+        self.check_object_permissions(self.request, chat_room_slug)
         myCache = cache.get("chatroom")
-        members = None
+        if not myCache:
+            myCache = Cache()
         if chat_room_slug in myCache.chatrooms.keys():
-            print("Chatroom Members : Cache Hit")
-            members = myCache.chatrooms[chat_room_slug]
+            if myCache.chatrooms[chat_room_slug].members:
+                print("Members : Cache Hit")
+            if not myCache.chatrooms[chat_room_slug].members:
+                myCache.chatrooms[chat_room_slug].members = ChatRoom.objects.get(slug=chat_room_slug).members
+                cache.set("chatroom", myCache)
+            return myCache.chatrooms[chat_room_slug].members
         else:
-            print("Chatroom Members : Cache Miss")
+            chatroom = None
             try:
-                chat_room = ChatRoom.objects.get(slug=chat_room_slug)
+                chatroom = ChatRoom.objects.get(slug=chat_room_slug)
             except:
                 raise APIException("Chatroom does not exist")
-            members = chat_room.members.all()
-            myCache.chatrooms[chat_room.slug] = members
+            chatroomCache = ChatroomCache()
+            chatroomCache.members = chatroom.members.all()
+            myCache.chatrooms[chat_room_slug] = chatroomCache
             cache.set("chatroom", myCache)
-        if self.request.user not in members:
-            raise APIException("Must be member of this Chatroom to access")
-        return members
+            return chatroomCache.members
 
 
 class MessageListApiView(ListAPIView):
@@ -165,11 +169,25 @@ class MessageListApiView(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         chat_room_slug = self.kwargs.get(self.lookup_url_kwarg)
-        try:
-            chat_room = ChatRoom.objects.get(slug=chat_room_slug)
-        except:
-            raise APIException("Chatroom does not exist")
-        if self.request.user not in chat_room.members.all():
-            raise APIException("You must be member of this chatroom for access")
-        qs = chat_room.message_set.all()
-        return qs
+        self.check_object_permissions(self.request, chat_room_slug)
+        myCache = cache.get("chatroom")
+        if not myCache:
+            myCache = Cache()
+        if chat_room_slug in myCache.chatrooms.keys():
+            if myCache.chatrooms[chat_room_slug].messages:
+                print("Messages : Cache Hit")
+            if not myCache.chatrooms[chat_room_slug].messages:
+                myCache.chatrooms[chat_room_slug].messages = ChatRoom.objects.get(slug=chat_room_slug).message_set.all()
+                cache.set("chatroom", myCache)
+            return myCache.chatrooms[chat_room_slug].messages
+        else:
+            chat_room = None
+            try:
+                chat_room = ChatRoom.objects.get(slug=chat_room_slug)
+            except:
+                raise APIException("Chatroom does not exist")
+            chatroomCache = ChatroomCache()
+            chatroomCache.messages = chat_room.message_set.all()
+            myCache.chatrooms[chat_room_slug] = chatroomCache
+            cache.set("chatroom", myCache)
+            return chatroomCache.messages

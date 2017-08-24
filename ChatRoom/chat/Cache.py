@@ -4,5 +4,9 @@ class Cache:
         self.users = dict({})
         self.chatrooms = dict({})
 
-    def __str__(self):
-        return self
+
+class ChatroomCache:
+
+    def __init__(self):
+        self.members = None
+        self.messages = None
