@@ -29,6 +29,9 @@ from .models import (
     ChatRoomMembership
 )
 
+from django.core.cache import cache
+from .Cache import Cache
+
 
 def index(request):
     return HttpResponse('<h1>Hello</h1>')
@@ -46,7 +49,7 @@ class ChatRoomCreateApiView(CreateAPIView):
 class ChatRoomUpdateApiView(RetrieveUpdateAPIView):
     queryset = ChatRoom.objects.all()
     serializer_class = ChatRoomCreateUpdateSerializer
-    permission_classes = [IsAuthenticated,IsRoomMember]
+    permission_classes = [IsAuthenticated, IsRoomMember]
     lookup_field = 'slug'
 
 
@@ -55,14 +58,25 @@ class ChatRoomListApiView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
-        user = self.request.user
-        qs = user.chatroom_set.all()
-        return qs
+        myCache = cache.get("chatroom")
+        chatrooms = None
+        if not myCache:
+            myCache = Cache()
+            print("Cache Created")
+        if self.request.user.id in myCache.users.keys():
+            chatrooms = myCache.users[self.request.user.id]
+            print("Cache hit")
+        else:
+            print("Cache miss")
+            chatrooms = self.request.user.chatroom_set.all()
+            myCache.users[self.request.user.id] = chatrooms
+            cache.set("chatroom", myCache)
+        return chatrooms
 
 
 class ChatRoomDeleteApiView(DestroyAPIView):
     serializer_class = ChatRoomDeleteSerializer
-    permission_classes = [IsAuthenticated,IsRoomAdmin]
+    permission_classes = [IsAuthenticated, IsRoomAdmin]
     queryset = ChatRoom.objects.all()
     lookup_field = 'slug'
 
@@ -102,7 +116,7 @@ class ChatRoomMembershipCreateApiView(CreateAPIView):
 
 class MessageCreateApiView(CreateAPIView):
     serializer_class = MessageCreateSerializer
-    permission_classes = [IsAuthenticated,IsRoomMember]
+    permission_classes = [IsAuthenticated, IsRoomMember]
     lookup_url_kwarg = 'slug'
 
     def perform_create(self, serializer):
@@ -114,7 +128,7 @@ class MessageCreateApiView(CreateAPIView):
         user = self.request.user
         if user not in chat_room.members.all():
             raise APIException("You must be member of this chatroom for access")
-        serializer.save(chat_room=chat_room,sender=user)
+        serializer.save(chat_room=chat_room, sender=user)
 
 
 class ChatRoomMembersListApiView(ListAPIView):
@@ -124,24 +138,32 @@ class ChatRoomMembersListApiView(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         chat_room_slug = self.kwargs.get(self.lookup_url_kwarg)
-        try:
-            chat_room = ChatRoom.objects.get(slug=chat_room_slug)
-        except:
-            raise APIException("Chatroom does not exist")
-        user = self.request.user
-        qs = chat_room.members.all()
-        if user not in qs:
+        myCache = cache.get("chatroom")
+        members = None
+        if chat_room_slug in myCache.chatrooms.keys():
+            print("Chatroom Members : Cache Hit")
+            members = myCache.chatrooms[chat_room_slug]
+        else:
+            print("Chatroom Members : Cache Miss")
+            try:
+                chat_room = ChatRoom.objects.get(slug=chat_room_slug)
+            except:
+                raise APIException("Chatroom does not exist")
+            members = chat_room.members.all()
+            myCache.chatrooms[chat_room.slug] = members
+            cache.set("chatroom", myCache)
+        if self.request.user not in members:
             raise APIException("Must be member of this Chatroom to access")
-        return qs
+        return members
 
 
 class MessageListApiView(ListAPIView):
     serializer_class = MessageListSerializer
-    permission_classes = [IsAuthenticated,IsRoomMember]
+    permission_classes = [IsAuthenticated, IsRoomMember]
     lookup_url_kwarg = 'slug'
     pagination_class = MyPageNumberPagination
 
-    def get_queryset(self,*args,**kwargs):
+    def get_queryset(self, *args, **kwargs):
         chat_room_slug = self.kwargs.get(self.lookup_url_kwarg)
         try:
             chat_room = ChatRoom.objects.get(slug=chat_room_slug)

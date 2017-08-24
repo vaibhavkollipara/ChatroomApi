@@ -1,7 +1,7 @@
 from rest_framework.generics import (CreateAPIView,
                                      RetrieveAPIView,
                                      ListAPIView)
-from rest_framework.permissions import AllowAny,IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import (UserCreateSerializer,
                           UserRetrieveSerializer)
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 
 class UserCreateApiView(CreateAPIView):
     serializer_class = UserCreateSerializer
-    permission_classes = [ AllowAny ]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         serializer.save()
@@ -33,6 +33,4 @@ class UserListApiView(ListAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = MyPageNumberPagination
     filter_backends = [SearchFilter]
-    search_fields = ['first_name','last_name','username','email']
-
-
+    search_fields = ['first_name', 'last_name', 'username', 'email']
