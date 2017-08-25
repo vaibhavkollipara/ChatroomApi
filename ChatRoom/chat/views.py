@@ -127,7 +127,7 @@ class MessageCreateApiView(CreateAPIView):
             chat_room = ChatRoom.objects.get(slug=chatroom_slug)
         except:
             raise APIException("Invalid Chatroom")
-        serializer.save(chat_room=chat_room, sender=user)
+        serializer.save(chat_room=chat_room, sender=self.request.user)
 
 
 class ChatRoomMembersListApiView(ListAPIView):
