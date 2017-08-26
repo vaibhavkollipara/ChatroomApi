@@ -8,7 +8,7 @@ from .Cache import Cache, ChatroomCache
 @receiver(post_save, sender=ChatRoomMembership)
 @receiver(post_delete, sender=ChatRoomMembership)
 def modified_Membership(sender, instance, ** kwargs):
-    print("Modified Membership : Cache Update")
+    # print("Modified Membership : Cache Update")
     myCache = cache.get("chatroom")
     if not myCache:
         myCache = Cache()
@@ -22,7 +22,7 @@ def modified_Membership(sender, instance, ** kwargs):
 
 @receiver(post_save, sender=Message)
 def new_message(sender, instance, **kwargs):
-    print("New Message : Cache Update")
+    # print("New Message : Cache Update")
     myCache = cache.get("chatroom")
     if not myCache:
         myCache = Cache()

@@ -6,33 +6,35 @@ from rest_framework.serializers import (
 )
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
-from .models import ChatRoom, Message,ChatRoomMembership
+from .models import ChatRoom, Message, ChatRoomMembership
 from django.contrib.auth.models import User
 
 
 class ChatRoomCreateUpdateSerializer(ModelSerializer):
     class Meta:
         model = ChatRoom
-        fields =[
+        fields = [
             'name',
-            'admin'
+            'admin',
+            'slug'
         ]
 
 
 class ChatRoomDeleteSerializer(ModelSerializer):
     class Meta:
         model = ChatRoom
-        fields =[
+        fields = [
             'name',
             'slug'
         ]
+
 
 class ChatRoomListSerializer(ModelSerializer):
     url = HyperlinkedIdentityField(
         view_name='chat:chatroommessages',
         lookup_field='slug'
     )
-    
+
     class Meta:
         model = ChatRoom
         fields = [
@@ -60,7 +62,7 @@ class ChatRoomMembershipCreateSerializer(Serializer):
             user = User.objects.get(username=username)
         except:
             raise APIException("Invalid User")
-        membership = ChatRoomMembership(chat_room=chat_room,user=user)
+        membership = ChatRoomMembership(chat_room=chat_room, user=user)
         try:
             membership.save()
         except:
@@ -72,11 +74,10 @@ class MembershipDeleteSerializer(ModelSerializer):
 
     class Meta:
         model = ChatRoomMembership
-        fields =[
+        fields = [
             'chat_room',
             'user'
         ]
-
 
 
 class ChatRoomMembersListSerializer(ModelSerializer):
@@ -89,7 +90,7 @@ class ChatRoomMembersListSerializer(ModelSerializer):
             'email'
         ]
 
-    def get_name(self,obj):
+    def get_name(self, obj):
         return obj.get_full_name()
 
 
@@ -106,11 +107,11 @@ class MessageListSerializer(ModelSerializer):
 
     class Meta:
         model = Message
-        fields =[
+        fields = [
             'message',
             'sender',
             'timestamp'
         ]
 
-    def get_sender(self,obj):
+    def get_sender(self, obj):
         return str(obj.sender.get_full_name())
