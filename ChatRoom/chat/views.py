@@ -58,21 +58,7 @@ class ChatRoomListApiView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
-        myCache = cache.get("chatroom")
-        chatrooms = None
-        if not myCache:
-            myCache = Cache()
-        if self.request.user.id in myCache.users.keys():
-            # if myCache.users[self.request.user.id]:
-                # print("Chatrooms : Cache Hit")
-            if not myCache.users[self.request.user.id]:
-                myCache.users[self.request.user.id] = self.request.user.chatroom_set.all()
-                cache.set("chatroom", myCache)
-        else:
-            # print("Cache miss")
-            myCache.users[self.request.user.id] = self.request.user.chatroom_set.all()
-            cache.set("chatroom", myCache)
-        return myCache.users[self.request.user.id]
+        return ChatRoom.objects.get_chatrooms(self.request.user)
 
 
 class ChatRoomDeleteApiView(DestroyAPIView):
@@ -139,33 +125,13 @@ class MessageCreateApiView(CreateAPIView):
 
 class ChatRoomMembersListApiView(ListAPIView):
     serializer_class = ChatRoomMembersListSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRoomMember]
     lookup_url_kwarg = 'slug'
 
     def get_queryset(self, *args, **kwargs):
         chat_room_slug = self.kwargs.get(self.lookup_url_kwarg)
         self.check_object_permissions(self.request, chat_room_slug)
-        myCache = cache.get("chatroom")
-        if not myCache:
-            myCache = Cache()
-        if chat_room_slug in myCache.chatrooms.keys():
-            # if myCache.chatrooms[chat_room_slug].members:
-                # print("Members : Cache Hit")
-            if not myCache.chatrooms[chat_room_slug].members:
-                myCache.chatrooms[chat_room_slug].members = ChatRoom.objects.get(slug=chat_room_slug).members
-                cache.set("chatroom", myCache)
-            return myCache.chatrooms[chat_room_slug].members
-        else:
-            chatroom = None
-            try:
-                chatroom = ChatRoom.objects.get(slug=chat_room_slug)
-            except:
-                raise APIException("Chatroom does not exist")
-            chatroomCache = ChatroomCache()
-            chatroomCache.members = chatroom.members.all()
-            myCache.chatrooms[chat_room_slug] = chatroomCache
-            cache.set("chatroom", myCache)
-            return chatroomCache.members
+        return ChatRoom.objects.get_members(chat_room_slug)
 
 
 class MessageListApiView(ListAPIView):
@@ -177,24 +143,4 @@ class MessageListApiView(ListAPIView):
     def get_queryset(self, *args, **kwargs):
         chat_room_slug = self.kwargs.get(self.lookup_url_kwarg)
         self.check_object_permissions(self.request, chat_room_slug)
-        myCache = cache.get("chatroom")
-        if not myCache:
-            myCache = Cache()
-        if chat_room_slug in myCache.chatrooms.keys():
-            # if myCache.chatrooms[chat_room_slug].messages:
-                # print("Messages : Cache Hit")
-            if not myCache.chatrooms[chat_room_slug].messages:
-                myCache.chatrooms[chat_room_slug].messages = ChatRoom.objects.get(slug=chat_room_slug).message_set.all()
-                cache.set("chatroom", myCache)
-            return myCache.chatrooms[chat_room_slug].messages
-        else:
-            chat_room = None
-            try:
-                chat_room = ChatRoom.objects.get(slug=chat_room_slug)
-            except:
-                raise APIException("Chatroom does not exist")
-            chatroomCache = ChatroomCache()
-            chatroomCache.messages = chat_room.message_set.all()
-            myCache.chatrooms[chat_room_slug] = chatroomCache
-            cache.set("chatroom", myCache)
-            return chatroomCache.messages
+        return ChatRoom.objects.get_messages(chat_room_slug)
